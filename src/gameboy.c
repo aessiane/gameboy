@@ -24,19 +24,15 @@ int		init_gameboy(t_gameboy *gb)
 
 int		run_gameboy(t_gameboy *gb)
 {
-  struct timespec res = {0, 0};
-
-  clock_gettime(CLOCK_MONOTONIC_RAW, &res);
-  gb->timing.last = res.tv_nsec;
   while (!gb->stop)
     {
-      /* debug_step done in cpu_step */
+      /* debug_step is done in cpu_step */
+      /* the joypad_step is done in gpu_step */
       cpu_step(gb);
+      gb->timing.cycles_count += gb->instruction.cycles;
       interrupts_step(gb);
-      joypad_step(gb);
       gpu_step(gb);
       timer_step(gb);
-      timing(gb);
     }
   return (0);
 }

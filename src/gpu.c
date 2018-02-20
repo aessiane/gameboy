@@ -5,7 +5,7 @@
 #include "errors.h"
 #include "interrupts.h"
 
-#define GET_NTH_BYTE(n, value) (((value) & (1 << (n))) >> (n))
+#define GET_NTH_BIT(n, value) (((value) & (1 << (n))) >> (n))
 
 #warning "IMPROVE PIXEL DRAWING ALGORITHM"
 
@@ -48,56 +48,39 @@ static void		push_fetch_to_fifo(t_gameboy *gb)
 
 static t_pixel_data	pop_from_fifo(t_gameboy *gb)
 {
-  t_pixel_data		ret = 0;
+  t_pixel_data	ret = 0;
 
-  if (gb->gpu.pff.size != 0) {
-      gb->gpu.pff.size -= 1;
-      ret = gb->gpu.pff.fifo[gb->gpu.pff.head];
-      gb->gpu.pff.head = (gb->gpu.pff.head + 1) % PIXEL_FIFO_SIZE;
-  }
-  else {
-      fprintf(stderr, "POP FROM FIFO INVALID\n");
-  }
+  /* Keep this guard, for each update of the gpu */
+  /*if (gb->gpu.pff.size != 0) {*/
+  gb->gpu.pff.size -= 1;
+  ret = gb->gpu.pff.fifo[gb->gpu.pff.head];
+  gb->gpu.pff.head = (gb->gpu.pff.head + 1) % PIXEL_FIFO_SIZE;
+  /*}*/
+  /*else {*/
+  /*fprintf(stderr, "POP FROM FIFO INVALID\n");*/
+  /*}*/
   return (ret);
 }
 
 static void	draw_pixel(t_gameboy *gb, int x, int y, uint8_t pixel)
 {
   int const width = gb->gpu.display.width;
-  int const height = gb->gpu.display.height;
-  int x_wide = width / SCREEN_WIDTH;
-  int y_wide = height / SCREEN_HEIGHT;
+  int const scale = gb->gpu.display.scale;
 
-  int tmp_x, tmp_y;
+  /* Scale x and y */
+  x = x * scale;
+  y = y * scale;
 
-  tmp_x = x * x_wide;
-  tmp_y = y * y_wide;
-
-  while (y_wide != 0) {
-      memset(gb->gpu.pixels + (tmp_y * width) + tmp_x, pixel, x_wide);
-      ++tmp_y;
-      --y_wide;
+  for (int i = 0; i < scale; ++i) {
+      memset(gb->gpu.pixels + (y * width) + x, pixel, scale);
+      y += 1;
   }
 }
 
-static uint8_t	get_pixel_color(t_gameboy *gb, uint8_t palette, uint8_t value)
+static inline uint8_t	get_pixel_color(t_gameboy *gb, uint8_t palette, uint8_t value)
 {
   return (gb->gpu.display.palette[
 	  (palette & (0b11 << (value * 2))) >> (value * 2)]);
-
-}
-
-static void	draw_tile(t_gameboy *gb, uint8_t *tile, int x, int y)
-{
-  for (unsigned j = 0; j < 8; ++j) {
-      for (unsigned i = 0; i < 8; ++i) {
-	  draw_pixel(gb, x + i, y + j,
-		     get_pixel_color(gb, *gb->hregisters.bgp,
-				     (GET_NTH_BYTE(7 - i, tile[(j * 2) + 1]) << 1) |
-				     (GET_NTH_BYTE(7 - i, tile[(j * 2)])))
-	  );
-      }
-  }
 
 }
 
@@ -171,10 +154,14 @@ bool		init_gpu(t_gameboy *gb)
       return (1);
     }
   gb->gpu.pixels = gb->gpu.display.screen->pixels;
-  gb->gpu.display.palette[0] = SDL_MapRGB(gb->gpu.display.screen->format, 0xFF, 0xFF, 0xFF);
-  gb->gpu.display.palette[1] = SDL_MapRGB(gb->gpu.display.screen->format, 0xAA, 0xAA, 0xAA);
-  gb->gpu.display.palette[2] = SDL_MapRGB(gb->gpu.display.screen->format, 0x55, 0x55, 0x55);
-  gb->gpu.display.palette[3] = SDL_MapRGB(gb->gpu.display.screen->format, 0x00, 0x00, 0x00);
+  gb->gpu.display.palette[0] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0xFF, 0xFF, 0xFF);
+  gb->gpu.display.palette[1] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0xAA, 0xAA, 0xAA);
+  gb->gpu.display.palette[2] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0x55, 0x55, 0x55);
+  gb->gpu.display.palette[3] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0x00, 0x00, 0x00);
 
   clear_fifo(gb);
   return (0);
@@ -185,44 +172,9 @@ static inline void	refresh_screen(t_gameboy *gb)
   SDL_Flip(gb->gpu.display.screen);
 }
 
-void            dump_tile(t_gameboy *gb, uint8_t *tile)
+static inline void	clear_screen(t_gameboy *gb)
 {
-  for (unsigned j = 0; j < 8; ++j) {
-      for (unsigned i = 0; i < 8; ++i) {
-	  uint8_t pixel = gb->gpu.display.palette[
-	    (GET_NTH_BYTE(7 - i, tile[(j * 2) + 1]) << 1) |
-	      (GET_NTH_BYTE(7 - i, tile[(j * 2)]))] != 0xff;
-	  if (pixel)
-	    printf("%02hhx ", pixel);
-	  else
-	    printf("   ");
-      }
-      printf("\n");
-  }
-}
-
-void             dump_background_tile_map(t_gameboy *gb)
-{
-  uint8_t      *map = get_bg_map(gb);
-  uint8_t      *tile;
-  unsigned     x = 0, y = 0;
-
-
-  for (y = 0; y < 18; ++y) {
-      for (x = 0; x < 20; ++x) {
-	  tile = get_bg_tile(gb, map[y * 32 + x]);
-	  draw_tile(gb, tile, x * 8, y * 8);
-      }
-  }
-  refresh_screen(gb);
-}
-
-static void	clear_screen(t_gameboy *gb)
-{
-  for (unsigned i = 0; i < gb->gpu.display.width * gb->gpu.display.height; ++i) {
-      gb->gpu.pixels[i] = 255;
-  }
-
+  memset(gb->gpu.pixels, 0xFF, gb->gpu.display.width * gb->gpu.display.height);
 }
 
 static inline void     compare_lyc(t_gameboy *gb)
@@ -252,7 +204,7 @@ static void		fetch_sprite(t_gameboy *gb, t_oam_entry const *entry)
   uint8_t		data1 = tile[idx + 1];
 
   for (unsigned i = 0; i < 8; ++i) {
-      unsigned const color = (GET_NTH_BYTE(7 - i, data1) << 1) | (GET_NTH_BYTE(7 - i, data0));
+      unsigned const color = (GET_NTH_BIT(7 - i, data1) << 1) | (GET_NTH_BIT(7 - i, data0));
       gb->gpu.fetcher.data[i] = 0;
       gb->gpu.fetcher.data[i] = SET_PD_COLOR(gb->gpu.fetcher.data[i], color);
       gb->gpu.fetcher.data[i] = SET_PD_SOURCE(gb->gpu.fetcher.data[i], PS_OBJ0 + palette);
@@ -264,30 +216,29 @@ static void		fetcher_step(t_gameboy *gb)
 {
   uint8_t		tile_nb = get_bg_map(gb)[gb->gpu.fetcher.address];
   uint8_t const		*tile = get_bg_tile(gb, tile_nb);
-  uint8_t const		idx = (gb->gpu.ppu.y % 8) * 2;
+  /* Perform (gb->gpu.ppu.y % 8) * 2 */
+  uint8_t const		idx = (gb->gpu.ppu.y & 0b111) << 1;
   uint8_t		data0 = tile[idx];
   uint8_t		data1 = tile[idx + 1];
 
   if (!(*gb->hregisters.lcdc & LCDC_BG_DISPLAY)) {
       data0 = data1 = 0;
   }
-  /* Ikterate on each pixel and fill fetcher data*/
+  /* Iterate on each pixel and fill fetcher data*/
   for (unsigned i = 0; i < 8; ++i) {
-      unsigned const color = (GET_NTH_BYTE(7 - i, data1) << 1) | (GET_NTH_BYTE(7 - i, data0));
-      gb->gpu.fetcher.data[i] = 0;
-      gb->gpu.fetcher.data[i] = SET_PD_COLOR(gb->gpu.fetcher.data[i], color);
+      gb->gpu.fetcher.data[i] = SET_PD_COLOR(0,
+					     (GET_NTH_BIT(7 - i, data1) << 1) | (GET_NTH_BIT(7 - i, data0)));
       gb->gpu.fetcher.data[i] = SET_PD_SOURCE(gb->gpu.fetcher.data[i], PS_BG);
   }
   gb->gpu.fetcher.address += 1;
 }
 
-static void		ppu_step(t_gameboy *gb)
+static void	ppu_step(t_gameboy *gb)
 {
-  t_pixel_data		pixel = pop_from_fifo(gb);
-  uint8_t		color = GET_PD_COLOR(pixel);
-  uint8_t		palette = GET_PD_SOURCE(pixel);
+  t_pixel_data	pixel = pop_from_fifo(gb);
+  uint8_t	color = GET_PD_COLOR(pixel);
 
-  color = get_pixel_color(gb, *(gb->hregisters.bgp + palette), color);
+  color = get_pixel_color(gb, *(gb->hregisters.bgp + GET_PD_SOURCE(pixel)), color);
   draw_pixel(gb, gb->gpu.ppu.x, gb->gpu.ppu.y, color);
   gb->gpu.ppu.x = (gb->gpu.ppu.x + 1) % SCREEN_WIDTH;
 }
@@ -319,20 +270,6 @@ sprite_loop:
   }
 }
 
-void                    dump_vram(t_gameboy *gb)
-{
-  uint8_t             *tiles = gb->memory.start + VRAM_INDEX;
-  unsigned            x = 0, y = 0, i = 0;
-
-  for (y = 0; y < 18; ++y) {
-      for (x = 0; x < 20; ++x) {
-	  draw_tile(gb, &tiles[i * 16], x * 8, y * 8);
-	  ++i;
-      }
-  }
-  refresh_screen(gb);
-}
-
 static void     update_gpu(t_gameboy *gb)
 {
   uint8_t     mode = *gb->hregisters.stat & 0x3;
@@ -351,6 +288,8 @@ static void     update_gpu(t_gameboy *gb)
 	      *gb->hregisters.stat = SET_STAT_MODE(*gb->hregisters.stat, GM_VBLANK);
 	      refresh_screen(gb);
 	      clear_screen(gb);
+	      joypad_step(gb);
+	      timing(gb);
 	  }
 	  else {
 	      *gb->hregisters.stat = SET_STAT_MODE(*gb->hregisters.stat, GM_OAM_SEARCH);
