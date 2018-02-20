@@ -29,6 +29,7 @@ int		main(int argc, char *argv[])
   init_debug(&gb);
   if (get_args(argc, argv, &gb) || init_gpu(&gb) || init_gameboy(&gb))
     return (EXIT_FAILURE);
+  init_timing(&gb);
   run_gameboy(&gb);
   SDL_Quit();
   return (EXIT_SUCCESS);
