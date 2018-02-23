@@ -48,3 +48,6 @@ vgcore.*
 peda-*
 .ycm_extra_conf*
 tmp/
+
+# Profiling files
+callgrind.out*
