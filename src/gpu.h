@@ -8,6 +8,7 @@
 # define SCREEN_HEIGHT 144
 
 # define BG_MAP_HW 32
+# define DEFAULT_SCREEN_SCALING 4
 
 # define PIXEL_FIFO_SIZE 16
 # define FETCHED_PIXEL_SIZE 8
@@ -137,7 +138,8 @@ typedef struct		s_gpu
 
 typedef struct s_gameboy	t_gameboy;
 
-bool		init_gpu(t_gameboy *gb);
+void            init_gpu(t_gameboy *gb);
+bool            start_gpu(t_gameboy *gb);
 void		dump_vram(t_gameboy *gb);
 void		dump_background_tile_map(t_gameboy *gb);
 void		gpu_step(t_gameboy *gb);

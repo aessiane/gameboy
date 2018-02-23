@@ -11,17 +11,6 @@
 #include "infos.h"
 #include "joypad.h"
 
-int		init_gameboy(t_gameboy *gb)
-{
-  if (load_rom(gb) || init_memory(gb))
-    return (1);
-  init_registers(gb);
-  init_hardware_registers(gb);
-  gb->interrupts.master = true;
-  gb->interrupts.state = ENABLED;
-  return (0);
-}
-
 int		run_gameboy(t_gameboy *gb)
 {
   while (!gb->stop)
@@ -34,5 +23,16 @@ int		run_gameboy(t_gameboy *gb)
       gpu_step(gb);
       timer_step(gb);
     }
+  return (0);
+}
+
+int		init_gameboy(t_gameboy *gb)
+{
+  if (load_rom(gb) || init_memory(gb))
+    return (1);
+  init_registers(gb);
+  init_hardware_registers(gb);
+  gb->interrupts.master = true;
+  gb->interrupts.state = ENABLED;
   return (0);
 }

@@ -216,14 +216,6 @@ static int	command_line(t_gameboy *gb)
   return (ret_value);
 }
 
-void		init_debug(t_gameboy *gb)
-{
-  gb->debug.prompt = "(ege) ";
-  gb->debug.enabled = false;
-  gb->debug.stop = false;
-  gb->debug.breakpoint_mask = 0;
-}
-
 void		debug_step(t_gameboy *gb)
 {
   if (!gb->debug.enabled) {
@@ -235,4 +227,12 @@ void		debug_step(t_gameboy *gb)
 
   while (command_line(gb) != 0) {
   }
+}
+
+void		init_debug(t_gameboy *gb)
+{
+  gb->debug.prompt = "(ege) ";
+  gb->debug.enabled = false;
+  gb->debug.stop = false;
+  gb->debug.breakpoint_mask = 0;
 }

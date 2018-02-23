@@ -7,11 +7,9 @@
 
 #define GET_NTH_BIT(n, value) (((value) & (1 << (n))) >> (n))
 
-#warning "IMPROVE PIXEL DRAWING ALGORITHM"
-
 static inline t_pixel_data	to_pixel_data(uint8_t color, uint8_t origin)
 {
-  return (color | ((origin) << 2));
+  return (color | (origin << 2));
 }
 
 static void		pixel_mixing(t_gameboy *gb, uint8_t priority)
@@ -135,36 +133,6 @@ static inline uint8_t *get_bg_map(t_gameboy *gb)
   return ((*gb->hregisters.lcdc & LCDC_BGTM_SELECT) ?
 	  (gb->memory.start + BG_MAP_2_INDEX) :
 	  (gb->memory.start + BG_MAP_1_INDEX));
-}
-
-bool		init_gpu(t_gameboy *gb)
-{
-  gb->gpu.display.width = SCREEN_WIDTH * gb->gpu.display.scale;
-  gb->gpu.display.height = SCREEN_HEIGHT * gb->gpu.display.scale;
-  if (SDL_Init(SDL_INIT_VIDEO) == -1)
-    {
-      fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
-      return (1);
-    }
-  gb->gpu.display.screen = SDL_SetVideoMode(gb->gpu.display.width, gb->gpu.display.height, 8,
-					    SDL_HWSURFACE | SDL_RESIZABLE);
-  if (gb->gpu.display.screen == NULL)
-    {
-      fprintf(stderr, "SDL_SetVideoMode failed: %s\n", SDL_GetError());
-      return (1);
-    }
-  gb->gpu.pixels = gb->gpu.display.screen->pixels;
-  gb->gpu.display.palette[0] = SDL_MapRGB(gb->gpu.display.screen->format,
-					  0xFF, 0xFF, 0xFF);
-  gb->gpu.display.palette[1] = SDL_MapRGB(gb->gpu.display.screen->format,
-					  0xAA, 0xAA, 0xAA);
-  gb->gpu.display.palette[2] = SDL_MapRGB(gb->gpu.display.screen->format,
-					  0x55, 0x55, 0x55);
-  gb->gpu.display.palette[3] = SDL_MapRGB(gb->gpu.display.screen->format,
-					  0x00, 0x00, 0x00);
-
-  clear_fifo(gb);
-  return (0);
 }
 
 static inline void	refresh_screen(t_gameboy *gb)
@@ -341,4 +309,38 @@ void		gpu_step(t_gameboy *gb)
   update_gpu(gb);
   if (!(lcdc & LCDC_LCD_ENABLE))
     return ;
+}
+
+bool            start_gpu(t_gameboy *gb)
+{
+  gb->gpu.display.width = SCREEN_WIDTH * gb->gpu.display.scale;
+  gb->gpu.display.height = SCREEN_HEIGHT * gb->gpu.display.scale;
+  if (SDL_Init(SDL_INIT_VIDEO) == -1)
+    {
+      fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+      return (1);
+    }
+  gb->gpu.display.screen = SDL_SetVideoMode(gb->gpu.display.width, gb->gpu.display.height, 8,
+					    SDL_HWSURFACE | SDL_RESIZABLE);
+  if (gb->gpu.display.screen == NULL)
+    {
+      fprintf(stderr, "SDL_SetVideoMode failed: %s\n", SDL_GetError());
+      return (1);
+    }
+  gb->gpu.pixels = gb->gpu.display.screen->pixels;
+  gb->gpu.display.palette[0] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0xFF, 0xFF, 0xFF);
+  gb->gpu.display.palette[1] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0xAA, 0xAA, 0xAA);
+  gb->gpu.display.palette[2] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0x55, 0x55, 0x55);
+  gb->gpu.display.palette[3] = SDL_MapRGB(gb->gpu.display.screen->format,
+					  0x00, 0x00, 0x00);
+  return (0);
+}
+
+void		init_gpu(t_gameboy *gb)
+{
+  gb->gpu.display.scale = DEFAULT_SCREEN_SCALING;
+  clear_fifo(gb);
 }
