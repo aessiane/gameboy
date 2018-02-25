@@ -11,10 +11,9 @@
 #include "infos.h"
 #include "joypad.h"
 
-int		run_gameboy(t_gameboy *gb)
+int run_gameboy(t_gameboy *gb)
 {
-  while (!gb->stop)
-    {
+  while (!gb->stop) {
       /* debug_step is done in cpu_step */
       /* the joypad_step is done in gpu_step */
       cpu_step(gb);
@@ -22,14 +21,15 @@ int		run_gameboy(t_gameboy *gb)
       interrupts_step(gb);
       gpu_step(gb);
       timer_step(gb);
-    }
+  }
   return (0);
 }
 
-int		init_gameboy(t_gameboy *gb)
+int init_gameboy(t_gameboy *gb)
 {
-  if (load_rom(gb) || init_memory(gb))
-    return (1);
+  if (load_rom(gb) || init_memory(gb)) {
+      return (1);
+  }
   init_registers(gb);
   init_hardware_registers(gb);
   gb->interrupts.master = true;

@@ -10,12 +10,12 @@
 
 #include "memory_rw.h"
 
-static t_gameboy	*g_gb;
+static t_gameboy *g_gb;
 
 /*
 ** Use CTRL-C to start the debugger
 */
-void		sighandler(int unused)
+void sighandler(int unused)
 {
   (void)unused;
 
@@ -23,9 +23,9 @@ void		sighandler(int unused)
   signal(SIGINT, &sighandler);
 }
 
-int		main(int argc, char *argv[])
+int             main(int argc, char *argv[])
 {
-  t_gameboy	gb;
+  t_gameboy     gb;
 
   g_gb = &gb;
   signal(SIGINT, &sighandler);

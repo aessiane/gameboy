@@ -26,31 +26,28 @@
 
 # define LYC_COINCIDENCE_BIT (1 << 6)
 
-enum e_gpu_mode
-{
-  GM_HBLANK,
-  GM_VBLANK,
-  GM_OAM_SEARCH,
-  GM_PIXEL_TRANSFER,
+enum e_gpu_mode {
+    GM_HBLANK,
+    GM_VBLANK,
+    GM_OAM_SEARCH,
+    GM_PIXEL_TRANSFER,
 };
 
-enum e_lcdc
-{
-  LCDC_LCD_ENABLE = 1 << 7,
-  LCDC_WTM_SELECT = 1 << 6,
-  LCDC_W_ENABLE = 1 << 5,
-  LCDC_BGWTD_SELECT = 1 << 4,
-  LCDC_BGTM_SELECT = 1 << 3,
-  LCDC_OBJ_SIZE = 1 << 2,
-  LCDC_OBJ_ENABLE = 1 << 1,
-  LCDC_BG_DISPLAY = 1 << 0
+enum e_lcdc {
+    LCDC_LCD_ENABLE = 1 << 7,
+    LCDC_WTM_SELECT = 1 << 6,
+    LCDC_W_ENABLE = 1 << 5,
+    LCDC_BGWTD_SELECT = 1 << 4,
+    LCDC_BGTM_SELECT = 1 << 3,
+    LCDC_OBJ_SIZE = 1 << 2,
+    LCDC_OBJ_ENABLE = 1 << 1,
+    LCDC_BG_DISPLAY = 1 << 0
 };
 
-enum e_pixel_source
-{
-  PS_BG = 0,
-  PS_OBJ0 = 1,
-  PS_OBJ1 = 2
+enum e_pixel_source {
+    PS_BG = 0,
+    PS_OBJ0 = 1,
+    PS_OBJ1 = 2
 };
 
 # define PD_COLOR (0b11)
@@ -68,80 +65,80 @@ enum e_pixel_source
 # define GET_OAM_PRIORITY(x) (((x) & 0b10000000) >> 7)
 
 /* Bit 0-1 : color; Bit 2-3: source */
-typedef uint8_t	t_pixel_data;
+typedef uint8_t t_pixel_data;
 
-typedef struct	s_pixel_fetcher
+typedef struct  s_pixel_fetcher
 {
-  uint16_t	address;
-  t_pixel_data	data[8];
-}		t_pixel_fetcher;
+  uint16_t      address;
+  t_pixel_data  data[8];
+}               t_pixel_fetcher;
 
-typedef struct	s_pixel_fifo
+typedef struct  s_pixel_fifo
 {
-  t_pixel_data	fifo[PIXEL_FIFO_SIZE];
-  uint8_t	head;
-  uint8_t	tail;
-  uint8_t	size;
-  uint8_t	on;
-}		t_pixel_fifo;
+  t_pixel_data  fifo[PIXEL_FIFO_SIZE];
+  uint8_t       head;
+  uint8_t       tail;
+  uint8_t       size;
+  uint8_t       on;
+}               t_pixel_fifo;
 
 typedef struct s_oam_entry
 {
-  uint8_t	pos_y;
-  uint8_t	pos_x;
-  uint8_t	tile;
-  uint8_t	flags;
+  uint8_t       pos_y;
+  uint8_t       pos_x;
+  uint8_t       tile;
+  uint8_t       flags;
 }               t_oam_entry;
 
 typedef struct s_display
 {
-  uint8_t	palette[4];
+  uint8_t       palette[4];
   uint8_t       scale;
-  unsigned	width;
-  unsigned	height;
-  SDL_Surface	*screen;
+  unsigned      width;
+  unsigned      height;
+  SDL_Surface   *screen;
 }               t_display;
 
-typedef struct		s_oam
+typedef struct  s_oam
 {
-  uint16_t		array[OAM_ARRAY_MAX];
-  uint8_t		index;
-}			t_oam;
+  uint16_t      array[OAM_ARRAY_MAX];
+  uint8_t       index;
+}               t_oam;
 
-typedef struct		s_ppu
+typedef struct s_ppu
 {
-  unsigned		x;
-  unsigned		y;
-}			t_ppu;
+  unsigned     x;
+  unsigned     y;
+}              t_ppu;
 
 # define SET_INPUT_ROW(x, row) ((x) = (x) & ~(row))
 
-typedef struct		s_input
+typedef struct s_input
 {
-  SDLKey		value;
-  uint8_t		row;
-  uint8_t		button;
-}			t_input;
+  SDLKey       value;
+  uint8_t      row;
+  uint8_t      button;
+}              t_input;
 
-typedef struct		s_gpu
+typedef struct    s_gpu
 {
-  uint8_t		*pixels;
-  t_display		display;
-  unsigned		mode_counter;
+  uint8_t         *pixels;
+  t_display       display;
+  unsigned        mode_counter;
 
-  t_pixel_fifo		pff;
-  t_pixel_fetcher	fetcher;
+  t_pixel_fifo    pff;
+  t_pixel_fetcher fetcher;
 
-  t_oam			oam;
-  t_ppu			ppu;
-}			t_gpu;
+  t_oam           oam;
+  t_ppu           ppu;
+}                 t_gpu;
 
-typedef struct s_gameboy	t_gameboy;
+typedef struct s_gameboy t_gameboy;
 
-void            init_gpu(t_gameboy *gb);
-bool            start_gpu(t_gameboy *gb);
-void		dump_vram(t_gameboy *gb);
-void		dump_background_tile_map(t_gameboy *gb);
-void		gpu_step(t_gameboy *gb);
+void init_gpu(t_gameboy *gb);
+bool start_gpu(t_gameboy *gb);
+void dump_vram(t_gameboy *gb);
+void dump_background_tile_map(t_gameboy *gb);
+void gpu_step(t_gameboy *gb);
 
 #endif /* !GPU_H_ */

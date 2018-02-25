@@ -12,14 +12,14 @@
 #define CONTINUE 1
 #define BREAK_SHELL 0
 
-static int	quit_cb(t_gameboy *gb, char **args)
+static int quit_cb(t_gameboy *gb, char **args)
 {
   (void)args;
   gb->stop = true;
   return (BREAK_SHELL);
 }
 
-static int	infos_cb(t_gameboy *gb, char **args)
+static int infos_cb(t_gameboy *gb, char **args)
 {
   (void)args;
   print_registers(gb);
@@ -27,16 +27,16 @@ static int	infos_cb(t_gameboy *gb, char **args)
   return (CONTINUE);
 }
 
-static int	sf_cb(t_gameboy *gb, char **args)
+static int  sf_cb(t_gameboy *gb, char **args)
 {
-  int		depth;
-  char		*endptr = NULL;
+  int       depth;
+  char      *endptr = NULL;
 
   if (word_tab_len((char const **)args) != 0) {
       errno = 0;
       depth = strtol(args[0], &endptr, 10);
       if (endptr[0] != '\0' || errno) {
-	  depth = DEFAULT_STACK_DUMPING;
+          depth = DEFAULT_STACK_DUMPING;
       }
   }
   else {
@@ -47,42 +47,42 @@ static int	sf_cb(t_gameboy *gb, char **args)
 
       printf("%#04x:\t|%04x|\n", address, fetch_word(gb, address));
       if (address == 0xFFFE) {
-	  break ;
+          break ;
       }
   }
   return (CONTINUE);
 }
 
-static int	break_cb(t_gameboy *gb, char **args)
+static int      break_cb(t_gameboy *gb, char **args)
 {
   (void)gb; (void)args;
   return (BREAK_SHELL);
 }
 
-static int	delete_cb(t_gameboy *gb, char **args)
+static int      delete_cb(t_gameboy *gb, char **args)
 {
   (void)gb; (void)args;
   return (CONTINUE);
 }
 
-static int	next_cb(t_gameboy *gb, char **args)
+static int      next_cb(t_gameboy *gb, char **args)
 {
   (void)gb; (void)args;
   return (BREAK_SHELL);
 }
 
-static int	continue_cb(t_gameboy *gb, char **args)
+static int      continue_cb(t_gameboy *gb, char **args)
 {
   (void)args;
   gb->debug.enabled = false;
   return (BREAK_SHELL);
 }
 
-static int	print_cb(t_gameboy *gb, char **args)
+static int      print_cb(t_gameboy *gb, char **args)
 {
-  int		address;
-  int		nol = DEFAULT_PRINT_LINES;
-  char		*endptr =  NULL;
+  int           address;
+  int           nol = DEFAULT_PRINT_LINES;
+  char          *endptr =  NULL;
 
   if (word_tab_len((char const **)args) == 0) {
       perr("Usage: print address [number_of_lines]\n");
@@ -101,12 +101,12 @@ static int	print_cb(t_gameboy *gb, char **args)
       errno = 0;
       nol = strtol(args[1], &endptr, 0);
       if (endptr[0] != '\0' || errno)
-	nol = DEFAULT_PRINT_LINES;
+        nol = DEFAULT_PRINT_LINES;
   }
   for (; nol > 0; --nol) {
       printf("%#04x:\t", address);
       for (int j = 0; j < WORDS_PER_LINE; ++j) {
-	  printf("%04x ", fetch_word(gb, address + (j * 2)));
+          printf("%04x ", fetch_word(gb, address + (j * 2)));
       }
       printf("\n");
       address += (WORDS_PER_LINE * 2);
@@ -114,16 +114,16 @@ static int	print_cb(t_gameboy *gb, char **args)
   return (CONTINUE);
 }
 
-static void	free_tab(char **tab)
+static void     free_tab(char **tab)
 {
   for (unsigned i = 0; tab[i] != NULL; ++i) {
       free(tab[i]);
   }
 }
 
-static int	help_cb(t_gameboy *gb, char **args);
+static int      help_cb(t_gameboy *gb, char **args);
 
-static t_command const	g_commands[] = {
+static t_command const  g_commands[] = {
       {"help", "displays all the available commands", 0, &help_cb},
       {"quit", "shutdown the gameboy", 0, &quit_cb},
       {"infos", "displays informations", 0, &infos_cb},
@@ -136,7 +136,7 @@ static t_command const	g_commands[] = {
       {"print", "show a place in memory", 2, &print_cb},
 };
 
-static int	help_cb(t_gameboy *gb, char **args)
+static int      help_cb(t_gameboy *gb, char **args)
 {
   for (unsigned i = 0; i < sizeof(g_commands) / sizeof(g_commands[0]); ++i) {
       printf("%s: %s\n", g_commands[i].name ,g_commands[i].description);
@@ -145,29 +145,29 @@ static int	help_cb(t_gameboy *gb, char **args)
   return (CONTINUE);
 }
 
-static int	str_to_tab(char **parsing_tab, char const *cmd)
+static int      str_to_tab(char **parsing_tab, char const *cmd)
 {
-  unsigned	i = 0;
-  unsigned	parsed = 0;
-  unsigned	tab_i = 0;
+  unsigned      i = 0;
+  unsigned      parsed = 0;
+  unsigned      tab_i = 0;
 
   do {
       if (isblank(cmd[i]) || cmd[i] == '\n' || cmd[i] == '\0') {
-	  if (parsed != 0) {
-	      if (tab_i == MAX_DEBUG_ARGS) {
-		  perr("Invalid cmd line: Too many arguments.\n");
-		  goto parsing_error;
-	      }
-	      parsing_tab[tab_i] = duplicate_string(cmd + i - parsed, parsed);
-	      if (!parsing_tab[tab_i]) {
-		  goto parsing_error;
-	      }
-	      tab_i += 1;
-	      parsed = 0;
-	  }
+          if (parsed != 0) {
+              if (tab_i == MAX_DEBUG_ARGS) {
+                  perr("Invalid cmd line: Too many arguments.\n");
+                  goto parsing_error;
+              }
+              parsing_tab[tab_i] = duplicate_string(cmd + i - parsed, parsed);
+              if (!parsing_tab[tab_i]) {
+                  goto parsing_error;
+              }
+              tab_i += 1;
+              parsed = 0;
+          }
       }
       else {
-	  parsed += 1;
+          parsed += 1;
       }
 
   } while (cmd[i++] != '\0');
@@ -178,12 +178,12 @@ parsing_error:
   return (CONTINUE);
 }
 
-static int	command_line(t_gameboy *gb)
+static int      command_line(t_gameboy *gb)
 {
-  char		cmd[DEBUG_CL_SIZE];
-  char		*parsing_tab[MAX_DEBUG_ARGS + 1] = {0};
-  int		rd;
-  int		ret_value = CONTINUE;
+  char          cmd[DEBUG_CL_SIZE];
+  char          *parsing_tab[MAX_DEBUG_ARGS + 1] = {0};
+  int           rd;
+  int           ret_value = CONTINUE;
 
   write(0, gb->debug.prompt, strlen(gb->debug.prompt));
   rd = read(0, cmd, DEBUG_CL_SIZE);
@@ -206,9 +206,9 @@ static int	command_line(t_gameboy *gb)
   }
   for (unsigned i = 0; i < sizeof(g_commands) / sizeof(g_commands[0]); ++i) {
       if (!strncmp(g_commands[i].name, parsing_tab[0], strlen(parsing_tab[0]))) {
-	  ret_value = (*g_commands[i].func)(gb, parsing_tab + 1);
-	  free_tab(parsing_tab);
-	  return (ret_value);
+          ret_value = (*g_commands[i].func)(gb, parsing_tab + 1);
+          free_tab(parsing_tab);
+          return (ret_value);
       }
   }
   perr("%s is an invalid command; type 'help' for more infos.\n", parsing_tab[0]);
@@ -216,7 +216,7 @@ static int	command_line(t_gameboy *gb)
   return (ret_value);
 }
 
-void		debug_step(t_gameboy *gb)
+void            debug_step(t_gameboy *gb)
 {
   if (!gb->debug.enabled) {
       return ;
@@ -229,7 +229,7 @@ void		debug_step(t_gameboy *gb)
   }
 }
 
-void		init_debug(t_gameboy *gb)
+void            init_debug(t_gameboy *gb)
 {
   gb->debug.prompt = "(ege) ";
   gb->debug.enabled = false;

@@ -3,7 +3,7 @@
 
 # define DIV_INC_FREQUENCY 16384
 
-typedef struct s_gameboy	t_gameboy;
+typedef struct s_gameboy        t_gameboy;
 
 enum e_timercontrol
 {
@@ -11,12 +11,12 @@ enum e_timercontrol
   TC_CLOCK_SELECT = (1 << 0) | (1 << 1)
 };
 
-typedef struct	s_timer
+typedef struct  s_timer
 {
-  unsigned	timer_counter;
-  unsigned	div_counter;
-}		t_timer;
+  unsigned      timer_counter;
+  unsigned      div_counter;
+}               t_timer;
 
-void		timer_step(t_gameboy *gb);
+void            timer_step(t_gameboy *gb);
 
 #endif /* !TIMER_H_ */

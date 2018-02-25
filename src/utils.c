@@ -5,14 +5,14 @@
 #include <sys/stat.h>
 #include "errors.h"
 
-void		dump_word_tab(char const * const *wordtab)
+void            dump_word_tab(char const * const *wordtab)
 {
   for (unsigned i = 0; wordtab[i] != NULL; ++i) {
       printf("[%i] = %s\n", i, wordtab[i]);
   }
 }
 
-unsigned	word_tab_len(char const * const *wordtab)
+unsigned        word_tab_len(char const * const *wordtab)
 {
   unsigned i = 0;
 
@@ -20,12 +20,12 @@ unsigned	word_tab_len(char const * const *wordtab)
   return (i);
 }
 
-char		*duplicate_string(char const *str, int n)
+char            *duplicate_string(char const *str, int n)
 {
-  char		*dup;
-  unsigned	to_copy = (n == -1 ? strlen(str) : (unsigned)n);
+  char          *dup;
+  unsigned      to_copy = (n == -1 ? strlen(str) : (unsigned)n);
 
-  dup = malloc(to_copy);
+  dup = malloc(to_copy + 1);
   if (dup != NULL) {
       strncpy(dup, str, to_copy);
       dup[to_copy] = '\0';
@@ -33,9 +33,9 @@ char		*duplicate_string(char const *str, int n)
   return (dup);
 }
 
-long		fsize(FILE *fs)
+long            fsize(FILE *fs)
 {
-  long		size;
+  long          size;
 
   fseek(fs, 0, SEEK_END);
   size = ftell(fs);
@@ -43,16 +43,16 @@ long		fsize(FILE *fs)
   return (size);
 }
 
-int		check_file_type(char const *name)
+int             check_file_type(char const *name)
 {
 #ifdef WIN32
-# define IS_REGULAR_FILE(x)	((x) & _S_IFREG)
-  struct _stat	buffer;
+# define IS_REGULAR_FILE(x)     ((x) & _S_IFREG)
+  struct _stat  buffer;
 
   if (_stat(name, &buffer) == -1)
 #else
-# define IS_REGULAR_FILE(x)	(S_ISREG(x))
-    struct stat	buffer;
+# define IS_REGULAR_FILE(x)     (S_ISREG(x))
+    struct stat buffer;
 
   if (stat(name, &buffer) == -1)
 #endif /* !WIN32 */

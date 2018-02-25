@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "infos.h"
 
-t_assoc_array const	g_cb_types[NB_CB_TYPES] = {
+t_assoc_array const     g_cb_types[NB_CB_TYPES] = {
       {0x00, "ROM ONLY"},
       {0x01, "MBC1"},
       {0x02, "MBC1+RAM"},
@@ -42,7 +42,7 @@ t_assoc_array const	g_cb_types[NB_CB_TYPES] = {
       {0xFF, "HuC1+RAM+BATTERY"},
 };
 
-t_assoc_array const	g_rom_sizes[NB_ROM_SIZES] = {
+t_assoc_array const     g_rom_sizes[NB_ROM_SIZES] = {
       {0x00, "32KByte (no ROM banking)"},
       {0x01, "64KByte (4 banks)"},
       {0x02, "128KByte (8 banks)"},
@@ -56,7 +56,7 @@ t_assoc_array const	g_rom_sizes[NB_ROM_SIZES] = {
       {0x54, "1.5MByte (96 banks)"},
 };
 
-t_assoc_array const	g_ram_sizes[NB_RAM_SIZES] = {
+t_assoc_array const     g_ram_sizes[NB_RAM_SIZES] = {
       {0x00, "None"},
       {0x01, "2 KBytes"},
       {0x02, "8 Kbytes"},
@@ -65,61 +65,58 @@ t_assoc_array const	g_ram_sizes[NB_RAM_SIZES] = {
       {0x05, "64 KBytes (8 banks of 8KBytes each)"},
 };
 
-static FILE	*check_and_open_file(t_gameboy *gb)
+static FILE     *check_and_open_file(t_gameboy *gb)
 {
-  FILE		*fs;
+  FILE          *fs;
 
   if ((gb->file.size = check_file_type(gb->file.name)) == -1)
     return (NULL);
-  else if (gb->file.size < MIN_ROM_SIZE)
-    {
+  else if (gb->file.size < MIN_ROM_SIZE) {
       perr("Invalid rom: file too short !\n");
       return (NULL);
-    }
-  else if ((fs = fopen(gb->file.name, "r")) == NULL)
-    {
+  }
+  else if ((fs = fopen(gb->file.name, "r")) == NULL) {
       perr(FUNC_ERR("fopen"));
       return (NULL);
-    }
+  }
   return (fs);
 }
 
-static int	dump_rom(t_gameboy *gb, FILE *fs)
+static int      dump_rom(t_gameboy *gb, FILE *fs)
 {
-  long		size;
-  long		pos = 0;
-  long		readed;
+  long          size;
+  long          pos = 0;
+  long          readed;
 
   if ((gb->rom.start = malloc(gb->file.size)) == NULL)
     return (perr(FUNC_ERR("malloc")));
   size = gb->file.size;
-  while (size && !feof(fs) && !ferror(fs))
-    {
+  while (size && !feof(fs) && !ferror(fs)) {
       readed = fread(gb->rom.start + pos, size, 1, fs);
       pos += readed;
       size -= readed;
-    }
+  }
   return (ferror(fs) ? perr(FUNC_ERR("fread")) : 0);
 }
 
-static unsigned short	get_word(void *const address)
+static uint16_t get_word(void *const address)
 {
 #ifdef L_ENDIAN
-  return ((*((unsigned short *)address) & 0x00FF) << 8) |
-    ((*((unsigned short *)address) & 0xFF00) >> 8);
+  return ((*((uint16_t *)address) & 0x00FF) << 8) |
+    ((*((uint16_t *)address) & 0xFF00) >> 8);
 #else
-  return (*((unsigned short *)address));
+  return (*((uint16_t *)address));
 # endif /* !L_ENDIAN */
 }
 
 /*
-** I could have read the whole structure by packing it,
-** but for eventual portability problems, I decided to fill it
-** field by field
-*/
-static void	get_rom_header(t_gameboy *gb)
+ ** I could have read the whole structure by packing it,
+ ** but for eventual portability problems, I decided to fill it
+ ** field by field
+ */
+static void     get_rom_header(t_gameboy *gb)
 {
-  t_header	*header = &gb->rom.header;
+  t_header      *header = &gb->rom.header;
 
   header->start = gb->rom.start + 0x100;
   memcpy(header->nintendo, header->start + 0x04, sizeof(header->nintendo));
@@ -137,74 +134,68 @@ static void	get_rom_header(t_gameboy *gb)
   print_header_infos(&gb->rom.header);
 }
 
-static int	check_header_checksum(t_gameboy *gb)
+static int      check_header_checksum(t_gameboy *gb)
 {
-  unsigned char	checksum = 0;
+  uint8_t checksum = 0;
 
-/*#warning "Remove this"*/
-  /*return (0);*/
   printf("Rom checksum : %d\n", gb->rom.header.header_checksum);
-  for (unsigned i = 0x34; i <= 0x4C; ++i)
-    {
+  for (unsigned i = 0x34; i <= 0x4C; ++i) {
       checksum = checksum - (gb->rom.header.start[i]) - 1;
-    }
+  }
   printf("Obtained checksum : %d\n", checksum);
   return (gb->rom.header.header_checksum != checksum ?
-	  perr("The header checksum is invalid !\n") : 0);
+          perr("The header checksum is invalid !\n") : 0);
   printf("_________________________\n\n");
 }
 
-static int	check_ram_size(unsigned char rs)
+static int check_ram_size(uint8_t rs)
 {
-  for (unsigned i = 0; i < (sizeof(g_ram_sizes) / sizeof(g_ram_sizes)); ++i)
-    {
+  for (unsigned i = 0; i < (sizeof(g_ram_sizes) / sizeof(g_ram_sizes)); ++i) {
       if (g_ram_sizes[i].key == rs)
-	return (0);
-    }
+        return (0);
+  }
   return (perr("Invalid ram size byte!\n"));
 }
 
-static int	check_rom_size(unsigned char rs)
+static int check_rom_size(uint8_t rs)
 {
-  for (unsigned i = 0; i < (sizeof(g_rom_sizes) / sizeof(g_rom_sizes)); ++i)
-    {
+  for (unsigned i = 0; i < (sizeof(g_rom_sizes) / sizeof(g_rom_sizes)); ++i) {
       if (g_rom_sizes[i].key == rs)
-	return (0);
-    }
+        return (0);
+  }
   return (perr("Invalid rom size byte!\n"));
 }
 
-static int	check_cartbridge_type(unsigned char ct)
+static int check_cartbridge_type(uint8_t ct)
 {
   if (ct != CT_ROM_ONLY)
     return (perr("Only the ROM only cartbridges are supported !\n"));
   return (0);
   // The 3 lines above must be removed after the MBC's implementation.
-  for (unsigned i = 0; i < (sizeof(g_cb_types) / sizeof(g_cb_types[0])); ++i)
-    {
+  for (unsigned i = 0; i < (sizeof(g_cb_types) / sizeof(g_cb_types[0])); ++i) {
       if (g_cb_types[i].key == ct)
-	return (0);
-    }
+        return (0);
+  }
   return (perr("Invalid cartbridge type byte !\n"));
 }
 
-static int	check_rom_header(t_gameboy *gb)
+static int  check_rom_header(t_gameboy *gb)
 {
-  t_header	*header = &gb->rom.header;
+  t_header  *header = &gb->rom.header;
 
   if (header->sgb_flag == 3)
     return (perr("SGB not supported !\n"));
   else if (check_header_checksum(gb) ||
-	   check_cartbridge_type(header->cart_type) ||
-	   check_rom_size(header->cart_rom_size) ||
-	   check_ram_size(header->cart_ram_size))
+           check_cartbridge_type(header->cart_type) ||
+           check_rom_size(header->cart_rom_size) ||
+           check_ram_size(header->cart_ram_size))
     return (1);
   return (0);
 }
 
-int		load_rom(t_gameboy *gb)
+int     load_rom(t_gameboy *gb)
 {
-  FILE		*fs;
+  FILE  *fs;
 
   if ((fs = check_and_open_file(gb)) == NULL || dump_rom(gb, fs))
     return (1);

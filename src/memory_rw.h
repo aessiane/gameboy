@@ -1,20 +1,22 @@
 #ifndef MEMORY_RW_H_
 # define MEMORY_RW_H_
 
-typedef struct s_memory		t_memory;
-typedef struct s_gameboy	t_gameboy;
+#include <stdint.h>
 
-char		fetch_byte(t_gameboy *gb, unsigned short address);
-unsigned short	fetch_word(t_gameboy *gb, unsigned short address);
+typedef struct s_memory t_memory;
+typedef struct s_gameboy t_gameboy;
 
-void		write_byte(t_gameboy *gb, unsigned short address, unsigned char value);
-void		write_word(t_gameboy *gb, unsigned short address, unsigned short value);
+uint8_t  fetch_byte(t_gameboy *gb, uint16_t address);
+uint16_t fetch_word(t_gameboy *gb, uint16_t address);
 
-void		load_memory(t_memory *memory);
+void write_byte(t_gameboy *gb, uint16_t address, uint8_t value);
+void write_word(t_gameboy *gb, uint16_t address, uint16_t value);
 
-unsigned char	pop_byte(t_gameboy *gb);
-unsigned short	pop_word(t_gameboy *gb);
-void		push_byte(t_gameboy *gb, unsigned char value);
-void		push_word(t_gameboy *gb, unsigned short value);
+void load_memory(t_memory *memory);
+
+uint8_t   pop_byte(t_gameboy *gb);
+uint16_t  pop_word(t_gameboy *gb);
+void      push_byte(t_gameboy *gb, uint8_t value);
+void      push_word(t_gameboy *gb, uint16_t value);
 
 #endif /* !MEMORY_RW_H_ */
