@@ -5,6 +5,10 @@
 
 typedef struct s_gameboy t_gameboy;
 
+enum e_keys_row {
+    KR_P14 = 0x10, KR_P15 = 0x20
+};
+
 typedef struct      s_keys
 {
   union {

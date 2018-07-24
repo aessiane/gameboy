@@ -4,9 +4,13 @@
 
 void            div_timer(t_gameboy *gb)
 {
+/*
+ * This means that each DIV_INC_STEP (so 256) instructions, we will increment
+ * the DIV register.
+ */
   gb->timer.div_counter += gb->instruction.cycles;
-  if (gb->timer.div_counter > DIV_INC_FREQUENCY) {
-      gb->timer.div_counter -= DIV_INC_FREQUENCY;
+  if (gb->timer.div_counter > DIV_INC_STEP) {
+      gb->timer.div_counter -= DIV_INC_STEP;
       *gb->hregisters.div = (*gb->hregisters.div == 0xFF ?
                              0 : *gb->hregisters.div + 1);
   }
@@ -14,7 +18,9 @@ void            div_timer(t_gameboy *gb)
 
 void            timer_step(t_gameboy *gb)
 {
-  static unsigned const timings[] = { 4096, 262144, 65536, 16384 };
+  static unsigned const timings[] =
+    { GB_CPU_FREQUENCY / 4096, GB_CPU_FREQUENCY / 262144,
+      GB_CPU_FREQUENCY / 65536, GB_CPU_FREQUENCY / 16384 };
   uint8_t const tac = *gb->hregisters.tac;
 
   div_timer(gb);

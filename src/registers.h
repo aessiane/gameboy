@@ -5,10 +5,10 @@
 # include <stdint.h>
 # include "memory.h"
 
-# define IS_NEG(a)      (a >> ((sizeof(a) * 8) - 1))
-# define IS_POS(a)      ((~a) >> ((sizeof(a) * 8) - 1))
+# define IS_NEG(a) (a >> ((sizeof(a) * 8) - 1))
+# define IS_POS(a) ((~a) >> ((sizeof(a) * 8) - 1))
 
-typedef struct                  s_registers
+typedef struct          s_registers
 {
   struct {
       union {

@@ -14,10 +14,10 @@ static inline uint8_t get_p15(t_keys const keys)
 
 uint8_t get_keys_value(uint8_t p1, t_keys const keys)
 {
-  if (!(p1 & 0x10)) {
+  if (!(p1 & KR_P14)) {
       return (get_p14(keys));
   }
-  if (!(p1 & 0x20)) {
+  if (!(p1 & KR_P15)) {
       return (get_p15(keys));
   }
   if (!(p1 & 0x30)) {

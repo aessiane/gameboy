@@ -32,11 +32,11 @@ void        write_byte(t_gameboy *gb, uint16_t address, uint8_t value)
       switch (address) {
           // DIV
         case 0xFF04:
-            gb->memory.start[address] = 0;
+            gb->memory.start[0xFF04] = 0;
             break;
             // LY
         case 0xFF44:
-            gb->memory.start[address] = 0;
+            gb->memory.start[0xFF44] = 0;
             break;
             // DMA
         case 0xFF46:
